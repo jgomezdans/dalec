@@ -1,3 +1,6 @@
+#!/usr/bin/env pythpn
+
+import numpy as np
 
 def dalec ( x, p, meteo_data, site_info ):
     """
@@ -12,7 +15,7 @@ def dalec ( x, p, meteo_data, site_info ):
     Clit = x[4]
     Csom = x[5]
     # ``d`` is the number of days, ``e`` of meteo parameters
-    ( d, e ) = met_data.shape
+    ( d, e ) = meteo_data.shape
 
     # Get the site information
     lat = site_info[0] 
@@ -43,14 +46,14 @@ def dalec ( x, p, meteo_data, site_info ):
     Afromlab = 0. # Needs to be initialised
     # Day loop
     for k in np.arange ( d ):
-        ( projectday, mint, maxt, rad, ca, yearday ) = met_data[ k, : ]
+        ( projectday, mint, maxt, rad, ca, yearday ) = meteo_data[ k, : ]
         #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         #% Step 3 - Run ACM to determine GPP %
         #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         trange=maxt-mint;
         LAI=max(0.1,(Cf/lma));
 
-        gs = ( np.pow( np.abs(psid), a10)/((0.5*trange) + (a6*rtot))
+        gs = np.pow( np.abs(psid), a10)/((0.5*trange) + (a6*rtot))
         pp = (a1*LAI*nit*np.exp( a8*maxt )) / gs
         qq = a3 - a4
         ci = 0.5*( ca + qq - pp + np.sqrt ((( ca+qq-pp)**2) - \
@@ -60,7 +63,7 @@ def dalec ( x, p, meteo_data, site_info ):
         mult = np.tan ( lat ) * np.tan ( dec )
         if mult >= 1:
             dayl = 24.
-        elif mult <= -1
+        elif mult <= -1:
             dayl = 0.
         else:
             dayl = 24.*np.acos ( -mult )/np.pi
@@ -83,22 +86,22 @@ def dalec ( x, p, meteo_data, site_info ):
             if max_fol == 1:      # spring
                 multtl = 1
                 multtf = 0
-            else                # summer
+            else:                # summer
                 multtl = 0
                 multtf = 0
-            end
+          
         if ( (Cf >= p[16]) or ( yearday >= 200 ) ):
             max_fol = 0
             multtl = 0
-        end
+        
         if ( ( yearday >= 200 ) and ( mint < p[12] ) ): 
             # Drop leaves N hemisphere
             multtf = 1
 
 
         Trate=0.5*np.exp( p[9]*0.5*( maxt + mint ) )
-        relabfrom = p[14]*Clab*p[15]*multtl*Trate
-        relatbto = (1. - p[13])*p[4]*Cf*p[15]*multtf*Trate
+        ralabfrom = p[14]*Clab*p[15]*multtl*Trate
+        ralabto = (1. - p[13])*p[4]*Cf*p[15]*multtf*Trate
         Ra = p[1]*G + ralabfrom + ralabto
         npp = G* ( 1. - p[1] )
         Af = min ( p[17] - Cf, npp*p[2] )*multtl + Afromlab
