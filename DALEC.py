@@ -26,15 +26,15 @@ def dalec ( x, p, meteo_data, site_info ):
     rtot = 1.0
     #ACM parameters
     a1 = p[10]
-    a2=0.0156935
-    a3=4.22273
-    a4=208.868
-    a5=0.0453194
-    a6=0.37836
-    a7=7.19298
-    a8=0.011136
-    a9=2.1001
-    a10=0.789798
+    a2 = 0.0156935
+    a3 = 4.22273
+    a4 = 208.868
+    a5 = 0.0453194
+    a6 = 0.37836
+    a7 = 7.19298
+    a8 = 0.011136
+    a9 = 2.1001
+    a10 = 0.789798
 
     
     # Define the output array
@@ -50,8 +50,8 @@ def dalec ( x, p, meteo_data, site_info ):
         #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         #% Step 3 - Run ACM to determine GPP %
         #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        trange=maxt-mint;
-        LAI=max(0.1,(Cf/lma));
+        trange = maxt - mint
+        LAI = max( 0.1, (Cf/lma) )
 
         gs = np.pow( np.abs(psid), a10)/((0.5*trange) + (a6*rtot))
         pp = (a1*LAI*nit*np.exp( a8*maxt )) / gs
