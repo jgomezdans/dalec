@@ -2,9 +2,10 @@
 
 import numpy as np
 
-def dalec ( x, p, meteo_data, site_info ):
+def dalec ( x, p, meteo_data, nit=2.7, lma=60., lat=42. ):
     """
     The DALEC ecosystem model. In glorious python
+    
     """
     # First extract the model parameters from the ``x`` vector
 
@@ -18,12 +19,15 @@ def dalec ( x, p, meteo_data, site_info ):
     ( d, e ) = meteo_data.shape
 
     # Get the site information
-    lat = site_info[0] 
+    
     lat = lat*np.pi/180. # To radians
-    nit = site_info[1]
-    lma = site_info[2]
     psid = -2.0
     rtot = 1.0
+    #real, parameter :: lma=60.    !gC m-2 LA
+    #real, parameter :: rtot=1.0
+    #real, parameter :: nit=2.7    !g m-2 la
+    #real, parameter :: psid=2.    !MPa
+    #real, parameter :: lat=0.732666 !42*3.14/180.    !metolius, oregon 
     #ACM parameters
     a1 = p[10]
     a2 = 0.0156935
@@ -53,7 +57,7 @@ def dalec ( x, p, meteo_data, site_info ):
         trange = maxt - mint
         LAI = max( 0.1, (Cf/lma) )
 
-        gs = np.pow( np.abs(psid), a10)/((0.5*trange) + (a6*rtot))
+        gs = np.power( np.abs(psid), a10)/((0.5*trange) + (a6*rtot))
         pp = (a1*LAI*nit*np.exp( a8*maxt )) / gs
         qq = a3 - a4
         ci = 0.5*( ca + qq - pp + np.sqrt ((( ca+qq-pp)**2) - \
@@ -66,7 +70,7 @@ def dalec ( x, p, meteo_data, site_info ):
         elif mult <= -1:
             dayl = 0.
         else:
-            dayl = 24.*np.acos ( -mult )/np.pi
+            dayl = 24.*np.arccos ( -mult )/np.pi
         cps = (e0*rad*gs*(ca-ci))/((e0*rad)+(gs*(ca-ci)))
         G = cps * ( (a2*dayl) + a5 )
         #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -104,8 +108,8 @@ def dalec ( x, p, meteo_data, site_info ):
         ralabto = (1. - p[13])*p[4]*Cf*p[15]*multtf*Trate
         Ra = p[1]*G + ralabfrom + ralabto
         npp = G* ( 1. - p[1] )
-        Af = min ( p[17] - Cf, npp*p[2] )*multtl + Afromlab
-        npp = npp - min ( p[17] - Cf, npp*p[2] )*multtl
+        Af = min ( p[16] - Cf, npp*p[2] )*multtl + Afromlab
+        npp = npp - min ( p[16] - Cf, npp*p[2] )*multtl
         Ar = npp*p[3]
         Aw = ( 1. - p[3] )*npp
         Lf = p[4]*Cf*p[13]*multtf
@@ -130,4 +134,15 @@ def dalec ( x, p, meteo_data, site_info ):
                                 Clit, Csom, NEE, ralabfrom, ralabto, Rtot ]
     return output_array
 
-        
+if __name__ == "__main__":
+    # A very basic test of Dalec
+    meteo_data = np.loadtxt( "sim04_met_l10_g6_n58.csv", delimiter="," )
+    nee_obs = np.loadtxt ("sim04_obs_l10_g6_n58.csv", delimiter=",")
+    missing = nee_obs[:,1] < -9998
+    x = np.array([0.513303,4891.44,134.927,82.27539,74.74379,12526.28])
+    params = np.array ( [ 0.0007393872, 0.6310229, 0.3276926, 0.2932357, \
+            0.04744657, 1e-006, 0.006676273, 0.03251259, 3.667811e-005, \
+            0.1475122, 10.52553, 345.7663, 14.08511, 0.7, 0.02686367, \
+            0.1724897, 350.4624 ] )
+    retval = dalec (x, params, meteo_data)
+    nee = retval[:, -4]
