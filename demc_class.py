@@ -316,7 +316,7 @@ class DEMC_sampler(object):
                 ( rhat, param_r, quantiles ) = self.MonitorChains ( Z_diagnostic)
                 self._dump_diags ( rhat, param_r, quantiles, iteration )
                 new_pop = iteration
-                if rhat<=1.2:
+                if rhat<=1.05:
                         npass += 1
                 else:
                     if npass>0:
@@ -330,7 +330,8 @@ class DEMC_sampler(object):
 
         self._tweet ("Finished simulation!")
         self._tweet ( "Returned %d samples"%int(m0+iteration*numpy.floor(self.n_burnin/self.n_thin)))
-        return (Z[:,:int(m0+iteration*numpy.floor(self.n_burnin/self.n_thin))], accept/self.num_population)
+        return ( Z, accept/self.num_population )
+#        return (Z[:,:int(m0+iteration*numpy.floor(self.n_burnin/self.n_thin))], accept/self.num_population)
 
 if __name__=="__main__":
     DEMC = DEMC_sampler ( 4, n_generations=400, n_burnin=1, n_thin=1, logger="test_me.log")
