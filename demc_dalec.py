@@ -68,7 +68,7 @@ class DEMC_dalec ( DEMC_sampler ):
         self.meteo_data = self.meteo_data[ passer, :]
         self.obs_nee = self.obs_nee[ passer ]
         self.missing_obs = self.missing_obs[ passer ]
-        
+        self.num_years = num_years
         self.truncate = truncate
         self.obs_thin = obs_thin
         self.x_init = np.array ( [0.0007393872, 0.6310229, \
@@ -167,12 +167,13 @@ class DEMC_dalec ( DEMC_sampler ):
         plt.title ("Iteration %d. Loglikelihood: %f" % ( self.it, lklihood ) )
         plt.axis ([0, 365, -10, 10])
         plt.grid ( True )
-        plt.savefig ( "/media/My Passport/inversions/%s_%d_iter%08d.png" % \
-                    ( flag, self.obs_thin, self.it), dpi=150 )
+        plt.savefig ( "/data/geospatial_07/ucfajlg/DALEC/%s_%d_iter%08d.png" % \
+            ( flag, self.obs_thin, self.num_years, self.it), dpi=300 )
         plt.close()
+        self._tweet ( "Iter#: %d. LogLkhd: %g" % ( self.it, lklihood ) )
         self._tweet ( "Saved plot " + \
-            "to /media/My\ Passport/inversions/%s_%d_iter%08d.png" \
-            % (flag, self.obs_thin, self.it ) )
+            "to /data/geospatial_07/ucfajlg/DALEC/%s_%d_nY_%02d_iter%08d.png" \
+            % (flag, self.obs_thin, self.num_years, self.it ) )
             
     def fitness ( self, theta ):
         """
@@ -264,8 +265,6 @@ class DEMC_dalec_arf ( DEMC_dalec ):
                     delta_prev = delta
         self.it += 1
         if self.it % 500 == 0:
-            print self.it, p
-            print "**", parameters
             self._plot_fit ( model_nee, p, flag="arf" )
                 
         return p
@@ -278,7 +277,7 @@ def mcmc_arf ( num_years ):
     cal_dalec = DEMC_dalec_arf ( "sim04_met_l10_g6_n58.csv", \
             "sim04_obs_l10_g6_n58.csv", num_years=num_years, truncate=True,\
             n_generations=1000, n_burnin=1, n_thin=1, \
-                logger="dalec_arf.log")
+                logger="dalec_arf_%02d.log"%num_years)
     
     # Need to define priors here...
     
@@ -376,7 +375,7 @@ def mcmc_arf ( num_years ):
         for p in selected:
             zt [ p, :] = Z_out[ p, : ]*(hi_val[p-1] - lo_val[p-1]) + lo_val[p-1]
         zt[0,:] = Z_out[0,:]
-    np.savez("mcmc_arf_results.npz", Z_out=Z_out, zt=zt )
+    np.savez("mcmc_arf_ny%02dresults.npz" % (num_years), Z_out=Z_out, zt=zt )
 
 
 def mcmc ( ):
