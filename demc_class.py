@@ -6,6 +6,14 @@ import sys, pdb
 from time import time
 
 MAX_ITERATIONS = 3000000
+
+class jeffreys (object):
+    def __init__ ( self ):
+        return
+    def pdf ( self, x ):
+        return 1./x
+    def rvs ( self, size=1 ):
+        return numpy.abs(numpy.random.randn(size))
 def full_gauss_den(x, mu, va, log):
     """ This function is the actual implementation
     of gaussian pdf in full matrix case.
@@ -213,7 +221,7 @@ class DEMC_sampler(object):
     
     
     def _dump_diags ( self, rhat, param_r, quantiles, iteration ):
-        self._tweet ("Convergence iagnostics @ iteration %s"%iteration)
+        self._tweet ("Convergence diagnostics @ iteration %s"%iteration)
         self._tweet ("Total rhat: %f"%rhat)
         for par in xrange(len(self.parameters)):
             self._tweet ("Param: %s; rhat: %f"%(self.parameters[par],param_r[par]))
@@ -238,7 +246,7 @@ class DEMC_sampler(object):
         #CR=self.CR, F=self.F, pSnooker=0.1, pGamma1=0.1, n_generations=10000, n_thin=5, n_burnin=2000, eps_mult=0.1, eps_add=0
         #Z = numpy.zeros ( d, m0)
         #X = numpy.zeros (d, num_population)
-
+        rhat_prev = 2.
         d = 2
         npass = 0
         X = Z[:,:self.num_population]
@@ -280,6 +288,7 @@ class DEMC_sampler(object):
                     #pdb.set_trace()
                     D2prop = max( numpy.dot(x_z, x_z), 1.0e-30) # Calculate D2prop
                     r_extra = Npar12*(numpy.log(D2prop) - numpy.log(D2))
+                    
                 else:
                     if (numpy.random.random()<self.pGamma1):
                         gamma_par = F1
@@ -294,6 +303,7 @@ class DEMC_sampler(object):
                 logfitness_x_prop = self.fitness ( x_prop )
                 logr = logfitness_x_prop - logfitness_x[i]
                 if (logr + r_extra)>numpy.log ( numpy.random.random()):
+                  
                     accepti += 1
                     X[:,i] = x_prop
                     logfitness_x[i] = logfitness_x_prop
@@ -316,12 +326,13 @@ class DEMC_sampler(object):
                 ( rhat, param_r, quantiles ) = self.MonitorChains ( Z_diagnostic)
                 self._dump_diags ( rhat, param_r, quantiles, iteration )
                 new_pop = iteration
-                if rhat<=1.05:
+                if ( rhat <= 1.05 ):
                         npass += 1
+                        rhat_prev = rhat
                 else:
-                    if npass>0:
+                    if npass > 0:
                         npass = 0
-                if npass>2: break
+                if npass > 3: break
                 if iteration>MAX_ITERATIONS:
                     self._tweet ( "Maximum number of iterations exceeded. Bailing out...")
                     break
