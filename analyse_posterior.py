@@ -122,7 +122,7 @@ def transform_variables_lognorm ( theta, x_init ):
         istart = 1
         retval[0,:] = theta[0,:]
     for i in xrange(istart, theta.shape[0]):
-        retval[i,:] = np.exp( theta[i,:] - 1. ) * x_init[i]
+        retval[i,:] = np.exp( theta[i,:] - 1. ) * x_init[i-1]
     return retval
         
 def posterior_analysis ( posterior_data, parameters, hi_val, lo_val, \
@@ -179,19 +179,19 @@ def posterior_analysis ( posterior_data, parameters, hi_val, lo_val, \
         #boxes['boxes'][i].set_mfc( '0.8' )
     return descriptive_stats
 if __name__ == "__main__":
-    parameters = ['p1','p2','p3','p4','p5','p6','p7','p8','p9', \
+    parameters = ['tau','p1','p2','p3','p4','p5','p6','p7','p8','p9', \
     'p10', 'p11', 'p12', 'p13', 'p14', 'p15', 'p16', 'p17', \
     'Cf init', 'Cw init', 'Cr init', 'Clab init', 'Clit init', \
     'Csom init' ]
     
-    true_vals = np.array([5.00E-04,0.45,0.4,0.4,6.00E-02,7.00E-05,\
+    true_vals = np.array([1,5.00E-04,0.45,0.4,0.4,6.00E-02,7.00E-05,\
     8.00E-03,3.00E-02,3.00E-05,7.30E-02,1.40E+01,240,9,0.48,\
     9.00E-02,0.15,300,0,5,5,100,5,9900])
     
-    lo_val = np.array( [ 1e-006, 0.2, 0.01, 0.01, 0.0001, 1e-006, \
+    lo_val = np.array( [ 0,1e-006, 0.2, 0.01, 0.01, 0.0001, 1e-006, \
     0.0001, 1e-005, 1e-006, 0.05, 5, 2e+002, 8, 0.1, 0.0001, \
     0.01, 1e+002, 0, 0, 0, 0, 0, 0 ] )
-    hi_val = np.array( [ 0.01, 0.7, 0.5, 0.5, 0.1, 0.01, \
+    hi_val = np.array( [ 100,0.01, 0.7, 0.5, 0.5, 0.1, 0.01, \
     0.01, 0.1, 0.01, 0.2, 20, 4e+002, 15, 0.7, 0.1, 0.5, \
     5e+002, 4e+002, 2.5e+004, 3e+002, 2e+002, 2e+002, 4e+004 ] )
     
