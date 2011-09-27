@@ -77,7 +77,7 @@ def trace_plots ( mcmc_result, parameter_names ):
 
 def parameter_histograms ( mcmc_results, parameter_names, lo_val, hi_val,       
             x_init=None, true_vals=None ):
-    plt.figure ()
+    
     nsamples = mcmc_results.shape[1]/2
     for ( i, param ) in enumerate ( parameter_names ):
         plt.subplot ( 5, 5, i+1 )
@@ -145,13 +145,16 @@ def posterior_analysis ( posterior_data, parameters, hi_val, lo_val, \
     plt.savefig ( os.path.join ( out_dir, "traces_%s_%02d.png" % \
             ( tag, num_years ) ), dpi=300 )
     plt.close()
-    parameter_histograms ( results, parameters, lo_val, hi_val, x_init, \
-            true_vals )
+    print "\tDone trace plots"
+    parameter_histograms ( results, parameters, lo_val, hi_val, x_init=None, \
+            true_vals=true_vals )
     plt.savefig ( os.path.join ( out_dir, "hists_%s_%02d.pdf" % \
         ( tag, num_years ) ), dpi=300 )
     plt.savefig ( os.path.join ( out_dir, "hists_%s_%02d.png" % \
         ( tag, num_years ) ), dpi=300 )
     plt.close()            
+    print "\tDone histogram plots"
+    
     (model_nee, doys, obs_nee, missing, meteo_data )= forward_model \
             (results[:,:], parameters  )
     mu_ensemble = model_nee.mean( axis=0 )
@@ -169,6 +172,8 @@ def posterior_analysis ( posterior_data, parameters, hi_val, lo_val, \
     plt.savefig ( os.path.join ( out_dir, "validation_%s_%02d.png" % \
         ( tag, num_years ) ), dpi=300 )
     plt.close()
+    print "\tDone validation plots"
+    
     #plt.figure()
     #boxes=plt.boxplot(result['Z_out'][:,:20000].T, notch=1, sym="" )
     #plt.axis([0, 24, 0, 2])
@@ -201,6 +206,7 @@ if __name__ == "__main__":
     14.08511, 0.7, 0.02686367, 0.1724897, 350.4624, 0.513303, \
     4891.44,134.927,82.27539,74.74379,12526.28 ])
     posterior_data = "mcmc_arf_ny%02dresults.npz" % 2
+    print "Doing plots for ", posterior_data
     descriptive = posterior_analysis ( posterior_data, \
         parameters, hi_val, lo_val, \
         "arf", 2, out_dir=".", \
