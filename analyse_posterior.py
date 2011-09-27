@@ -15,7 +15,7 @@ def PreparePlotsParams ( small=True):
     'figure.subplot.top' : 0.95,      # the top of the subplots of the figure
     'figure.subplot.wspace' : 0.32,   # the amount of width reserved for blank space between subplots
     'figure.subplot.hspace' : 0.32,   # the amount of height reserved for white space between subplots
-    'text.usetex': True ,
+    #'text.usetex': True ,
     'figure.figsize': fig_size}
     pylab.rcParams.update(params)
     if small:
@@ -105,9 +105,18 @@ def forward_model ( mcmc_results, parameter_names, \
     i = 0
     model_nee = np.zeros ( ( 500, meteo_data.shape[0] ) )
     for params in sel:
-        retval = dalec ( parameters[17:, params], parameters[:17, params], meteo_data, \
-        -2, 1, 60, 42.2, 2.7)#self.psid, self.rtot, self.lma, self.lat, self.nit )
-        
+        if parameters.shape[0] == 23:
+            retval = dalec ( parameters[17:, params], \
+            parameters[:17, params], meteo_data, \
+            -2, 1, 60, 42.2, 2.7)
+            #self.psid, self.rtot, self.lma, self.lat, self.nit )
+        elif parameters.shape[0] == 24:
+            retval = dalec ( parameters[18:, params], \
+                parameters[1:18, params], meteo_data, \
+                -2, 1, 60, 42.2, 2.7)
+                #self.psid, self.rtot, self.lma, self.lat, self.nit )
+        else:
+            print ">>>>>> Something fishy"
         model_nee[ i, : ] =  retval[ :, -4 ]
         i = i + 1
     #plt.plot ( meteo_data[~missing_obs,0], obs_nee[~missing_obs,1], 'ro' )
@@ -209,5 +218,5 @@ if __name__ == "__main__":
     print "Doing plots for ", posterior_data
     descriptive = posterior_analysis ( posterior_data, \
         parameters, hi_val, lo_val, \
-        "arf", 2, out_dir=".", \
+        "arf", 2, out_dir="/data/geospatial_07/ucfajlg/DALEC/plots/", \
         transform=True, x_init=x_init, true_vals = true_vals )
