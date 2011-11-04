@@ -1,6 +1,7 @@
 import os 
 import numpy as np
 import matplotlib.pyplot as plt
+from analysis_funcs import *
 
 def PreparePlotsParams ( small=True):
     import pylab
@@ -139,14 +140,18 @@ def posterior_analysis ( posterior_data, parameters, hi_val, lo_val, \
         transform=False, x_init=None, true_vals = None ):
             
     PreparePlotsParams ()
+    ( parameters, results, result, model_nee, doys, obs_nee, missing ) = \
+            prepare_data ( posterior_data, parameters, hi_val, lo_val, \
+            tag, num_years, out_dir=".", \
+            transform=False, x_init=None, true_vals = None )
     # Read the posterior samples
-    result = np.load ( posterior_data )
-    if transform and x_init is not None:
-        results = transform_variables_lognorm ( result['Z_out'], x_init )
-    elif transform and x_init is None:
-        results = results['Z_out']*(hi_val - lo_val ) + lo_val
-    else:
-        results = results['Z_out']
+    #result = np.load ( posterior_data )
+    #if transform and x_init is not None:
+        #results = transform_variables_lognorm ( result['Z_out'], x_init )
+    #elif transform and x_init is None:
+        #results = results['Z_out']*(hi_val - lo_val ) + lo_val
+    #else:
+        #results = results['Z_out']
     descriptive_stats = summarise_posterior ( results, parameters, true_vals )
     trace_plots ( result['Z_out'], parameters )
     plt.savefig ( os.path.join ( out_dir, "traces_%s_%02d.pdf" % \
@@ -164,8 +169,10 @@ def posterior_analysis ( posterior_data, parameters, hi_val, lo_val, \
     plt.close()            
     print "\tDone histogram plots"
     
-    (model_nee, doys, obs_nee, missing, meteo_data )= forward_model \
-            (results[:,:], parameters  )
+    #(model_nee, doys, obs_nee, missing, meteo_data )= forward_model \
+            #(results[:,:], parameters  )
+    #sigma=0.58
+    #plot_residuals ( model_nee, obs_nee, doys, sigma, tau=None )
     mu_ensemble = model_nee.mean( axis=0 )
     std_ensemble = model_nee.std ( axis=0 )
     plt.figure()
@@ -173,8 +180,9 @@ def posterior_analysis ( posterior_data, parameters, hi_val, lo_val, \
     
     plt.vlines ( doys, mu_ensemble-3*std_ensemble, mu_ensemble+3*std_ensemble, \
                 color="0.6" )
-    plt.plot ( doys[~missing], obs_nee[~missing], '-b' )
- 
+    plt.plot ( doys[~missing], obs_nee[~missing], 'o', \
+                markerfacecolor='none',markeredgecolor='b' )
+    plt.plot ( doys, mu_ensemble, '-r' )
     plt.grid (True)
     plt.savefig ( os.path.join ( out_dir, "validation_%s_%02d.pdf" % \
         ( tag, num_years ) ), dpi=300 )
@@ -192,6 +200,23 @@ def posterior_analysis ( posterior_data, parameters, hi_val, lo_val, \
         #boxes['boxes'][i].set_color( 'k' )
         #boxes['boxes'][i].set_mfc( '0.8' )
     return descriptive_stats
+    
+    
+def prepare_data( posterior_data, parameters, hi_val, lo_val, \
+        transform=False, x_init=None, true_vals = None ):
+    
+    # Read the posterior samples
+    result = np.load ( posterior_data )
+    if transform and x_init is not None:
+        results = transform_variables_lognorm ( result['Z_out'], x_init )
+    elif transform and x_init is None:
+        results = results['Z_out']*(hi_val - lo_val ) + lo_val
+    else:
+        results = results['Z_out']
+    (model_nee, doys, obs_nee, missing, meteo_data )= forward_model \
+            (results[:,:], parameters  )
+    return ( parameters, results, result, model_nee, doys, obs_nee, missing )
+    
 if __name__ == "__main__":
     parameters = ['tau','p1','p2','p3','p4','p5','p6','p7','p8','p9', \
     'p10', 'p11', 'p12', 'p13', 'p14', 'p15', 'p16', 'p17', \
@@ -214,9 +239,17 @@ if __name__ == "__main__":
     0.03251259, 3.667811e-005, 0.1475122, 10.52553, 345.7663, \
     14.08511, 0.7, 0.02686367, 0.1724897, 350.4624, 0.513303, \
     4891.44,134.927,82.27539,74.74379,12526.28 ])
-    posterior_data = "mcmc_arf_ny%02dresults.npz" % 2
-    print "Doing plots for ", posterior_data
-    descriptive = posterior_analysis ( posterior_data, \
+    #for n_years in [2]:#xrange ( 1, 8 ):
+        #posterior_data = "mcmc_arf_ny%02dresults.npz" % n_years
+        #print "Doing plots for ", posterior_data
+        #descriptive = posterior_analysis ( posterior_data, \
+            #parameters, hi_val, lo_val, \
+            #"arf", n_years, out_dir="./plots/", \
+            #transform=True, x_init=x_init, true_vals = true_vals )
+    posterior_data = "mcmc_arf_ny02results.npz"
+    ( parameters, results, result, model_nee, doys, obs_nee, missing ) = \
+        prepare_data ( posterior_data, \
         parameters, hi_val, lo_val, \
-        "arf", 2, out_dir="/data/geospatial_07/ucfajlg/DALEC/plots/", \
         transform=True, x_init=x_init, true_vals = true_vals )
+    res = calculate_residuals ( model_nee, obs_nee, 0.58 )
+    inno = calculate_innovations ( model_nee[250,:], obs_nee, doys, 0.58, 1.)
